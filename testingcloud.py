@@ -1,23 +1,28 @@
-import cloudscraper
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
 
-# URL API dan data payload
+# Inisialisasi WebDriver
+driver = webdriver.Chrome()
+
+# Akses halaman
+driver.get('https://www.nc-gym.com')
+
+# Tunggu agar Cloudflare selesai
+time.sleep(5)
+
+# Akses API setelah verifikasi
 api_url = "https://www.nc-gym.com/api/gate-log"
 payload = {'id': '786195', 'status': 'keluar'}
+driver.execute_script(f'''
+    fetch("{api_url}", {{
+        method: "POST",
+        headers: {{
+            "Content-Type": "application/json"
+        }},
+        body: JSON.stringify({payload})
+    }}).then(response => response.text()).then(data => console.log(data));
+''')
 
-# Headers yang dibutuhkan
-headers = {
-    'Content-Type': 'application/json',
-    'User-Agent': 'Mozilla/5.0'
-}
-
-# Inisialisasi cloudscraper untuk melewati Cloudflare
-scraper = cloudscraper.create_scraper()
-
-# Kirim permintaan POST ke API
-try:
-    response = scraper.post(api_url, json=payload, headers=headers, timeout=10)
-    response.raise_for_status()  # Periksa apakah ada error HTTP
-    print(f"Status Code: {response.status_code}")
-    print(f"Response API: {response.text}")
-except Exception as e:
-    print(f"Error occurred: {e}")
+time.sleep(5)  # Tunggu hasil
+driver.quit()
